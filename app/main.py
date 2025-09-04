@@ -4,6 +4,7 @@ import httpx
 
 from contextlib import asynccontextmanager
 
+from app.api.endpoints import router
 from app.config import settings
 
 
@@ -24,3 +25,6 @@ async def lifespan(app: FastAPI):
 
 # Define the app
 app = FastAPI(lifespan=lifespan)
+
+# Mounting the router
+app.include_router(router=router)

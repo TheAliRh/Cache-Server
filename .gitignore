@@ -2,3 +2,6 @@ temp/
 
 # Virtual environment
 venv/
+
+# Caches 
+__pycache__/

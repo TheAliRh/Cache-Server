@@ -1,2 +1,6 @@
 # Caching Server
-This is a simple caching server developed by python language.
+This is a simple caching server for demonstration of my skills.
+
+## Technologies
+- Python
+- Redis

@@ -16,5 +16,15 @@ class Settings:
     U_PORT = 8000
     U_RELOAD = True
 
+    # Postgres configuration
+    P_HOST = "localhost"
+    P_PORT = "5432"
+    P_DATABASE = ""
+    P_USERNAME = os.getenv("POSTGRS_USERNAME")
+    P_PASSWORD = os.getenv("POSTGRS_PASSWORD")
+    P_DATABASE_URL = (
+        f"postgres://{P_USERNAME}:{P_PASSWORD}@{P_HOST}:{P_PORT}/{P_DATABASE}"
+    )
+
 
 settings = Settings()

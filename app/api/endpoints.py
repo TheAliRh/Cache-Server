@@ -18,9 +18,8 @@ async def get_item(request: Request):
     # Defining the HTTP Client
     http_client: httpx.AsyncClient = request.app.state.http_client
 
-    value = redis_client.get("entries")
-
     # Check cache miss
+    value = redis_client.get("entries")
     if value is None:
 
         try:

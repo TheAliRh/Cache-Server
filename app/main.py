@@ -25,7 +25,11 @@ async def lifespan(app: FastAPI):
 
 
 # Define the app
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.PROJECT_VERSION,
+    lifespan=lifespan,
+)
 
 # Mounting the router
 app.include_router(router=router)

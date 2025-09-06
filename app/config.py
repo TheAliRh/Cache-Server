@@ -5,7 +5,7 @@ class Settings:
 
     # FastAPI configuration
     PROJECT_NAME = "Cache Server"
-    Project_VERSION = "V 0.2"
+    PROJECT_VERSION = "V 0.2"
 
     # Redis configuration
     R_HOST = "localhost"

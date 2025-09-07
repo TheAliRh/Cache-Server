@@ -34,6 +34,13 @@ app = FastAPI(
 # Mounting the router
 app.include_router(router=router)
 
+
+# Health check endpoint
+@app.get("/")
+async def health_check():
+    return {"message": "the server is running!"}
+
+
 # Run the app
 if __name__ == "__main__":
     uvicorn.run(

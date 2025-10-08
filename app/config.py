@@ -16,14 +16,14 @@ class Settings:
     U_PORT = 8000
     U_RELOAD = True
 
-    # Postgres configuration
-    P_HOST = "localhost"
-    P_PORT = "5432"
-    P_DATABASE = ""
-    P_USERNAME = os.getenv("POSTGRS_USERNAME")
-    P_PASSWORD = os.getenv("POSTGRS_PASSWORD")
-    P_DATABASE_URL = (
-        f"postgres://{P_USERNAME}:{P_PASSWORD}@{P_HOST}:{P_PORT}/{P_DATABASE}"
+    # Mongodb configuration
+    M_HOST = "localhost"
+    M_PORT = "27017"
+    M_DATABASE = "url_shortener"
+    M_USERNAME = os.getenv("MONGO_USERNAME")
+    M_PASSWORD = os.getenv("MONGO_PASSWORD")
+    M_DATABASE_URL = (
+        f"mongodb://{M_USERNAME}:{M_PASSWORD}@{M_HOST}:{M_PORT}/{M_DATABASE}"
     )
 
 

@@ -1,12 +1,14 @@
 from fastapi import FastAPI
-from redis import Redis
 import uvicorn
 import httpx
 
 from contextlib import asynccontextmanager
 
-from api.endpoints import router
-from config import settings
+from app.api.endpoints.endpoints import router
+from app.api.endpoints.admin import AdminEndpoints
+from app.api.endpoints.url import URLEndpoints
+from app.config import settings
+from database.connection import Connection
 
 
 # Lifespan method
@@ -14,14 +16,16 @@ from config import settings
 async def lifespan(app: FastAPI):
 
     # On startup
-    app.state.redis = Redis(host=settings.R_HOST, port=settings.R_PORT)
+    app.state.mongo_client = Connection.mongo_db_manager
+    app.state.redis_client = Connection.redis_db_manager
     app.state.http_client = httpx.AsyncClient()
 
     # Yield back to caller
     yield
 
     # On shutdown
-    app.state.redis.close()
+    app.state.mongo_client.close()
+    app.state.redis_client.close()
 
 
 # Define the app
@@ -32,7 +36,12 @@ app = FastAPI(
 )
 
 # Mounting the router
+admin_router = AdminEndpoints()
+url_shortner_router = URLEndpoints()
+
 app.include_router(router=router)
+app.include_router(router=admin_router)
+app.include_router(router=url_shortner_router)
 
 
 # Health check endpoint

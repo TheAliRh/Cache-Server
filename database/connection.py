@@ -1,18 +1,22 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+"""This module is used to connect to the databases."""
 
+from database.mongo.mongo_database_manager import MongoDatabaseManager
+from database.redis.redis_database_manager import RedisDatabaseManager
 from app.config import settings
 
-# Sqlalchemy database engine
-engine = create_engine(settings.P_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+class Connection:
 
-# Create database session
-def get_db_session():
-
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    mongo_db_manager = MongoDatabaseManager(
+        host=settings.M_HOST,
+        port=settings.M_PORT,
+        username=settings.M_USERNAME,
+        password=settings.M_PASSWORD,
+        db_name=settings.M_DATABASE,
+    )
+    redis_db_manager = RedisDatabaseManager(
+        host=settings.R_HOST,
+        port=settings.R_PORT,
+        password=settings.R_PASSWORD,
+        db_name=settings.R_DATABASE,
+    )

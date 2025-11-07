@@ -29,7 +29,7 @@ class URLDoc(BaseModel):
 
     _id: Optional[str]
     code: str
-    original_url: AnyHttpUrl
+    original_url: str
     created_at: datetime
     expires_in_seconds: Optional[datetime]
     clicks: int = 0

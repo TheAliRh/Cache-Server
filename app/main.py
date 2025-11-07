@@ -17,15 +17,17 @@ async def lifespan(app: FastAPI):
 
     # On startup
     app.state.mongo_client = Connection.mongo_db_manager
+    app.state.mongo_client.connect()
     app.state.redis_client = Connection.redis_db_manager
+    app.state.redis_client.connect()
     app.state.http_client = httpx.AsyncClient()
 
     # Yield back to caller
     yield
 
     # On shutdown
-    app.state.mongo_client.close()
-    app.state.redis_client.close()
+    app.state.mongo_client.disconnect()
+    app.state.redis_client.disconnect()
 
 
 # Define the app

@@ -11,44 +11,42 @@ class MongoDatabaseManager:
         self.port = port
         self.username = username
         self.password = password
-        self.db_name = db_name
 
     def connect(self):
-        self.client = AsyncIOMotorClient(
-            f"mongodb://{self.username}:{self.password}@{self.host}:{self.port}/{self.db_name}"
-        )
+        self.client = AsyncIOMotorClient(f"mongodb://{self.host}:{self.port}")
+        self.db_name = self.client.db_name
 
     def disconnect(self):
         self.client.close()
 
-    def insert_one(self, collection_name, document):
-        inserted = self.client[collection_name.value].insert_one(document)
-        return inserted.insert_id
+    async def insert_doc(self, collection_name, document):
+        inserted = await self.db_name.collection_name.insert_one(document)
+        return {"inserted_id": str(inserted.inserted_id)}
 
-    def insert_many(self, collection_name, documents):
-        inserted_urls = self.client[collection_name.value].insert_many(documents)
+    async def insert_many_docs(self, collection_name, documents):
+        inserted_urls = await self.db_name.collection_name.insert_many(documents)
         return inserted_urls.inserted_ids
 
-    def find_one(self, collection_name, query):
-        shrt_url = self.client[collection_name.value].find_one(query)
+    async def find_one(self, collection_name, query):
+        shrt_url = await self.db_name.collection_name.find_one(query)
         return shrt_url
 
-    def find_many(self, collection_name, query):
-        shrt_urls = list[self.client[collection_name.value].find(query)]
+    async def find_many(self, collection_name, query):
+        shrt_urls = await list[self.db_name.collection_name.find(query)]
         return shrt_urls
 
-    def update_one(self, collection_name, query, document):
-        updated_url = self.client[collection_name.value].update_one(query, document)
-        return updated_url
+    async def update_one(self, collection_name, query, document):
+        updated_url = await self.db_name.collection_name.update_one(query, document)
+        return {"updated_url": str(updated_url)}
 
-    def update_many(self, collection_name, query, documents):
-        updated_url = self.client[collection_name.value].update_many(query, documents)
+    async def update_many(self, collection_name, query, documents):
+        updated_url = await self.db_name.collection_name.update_many(query, documents)
         return updated_url.matched_count, updated_url.modified_count
 
-    def delete_one(self, collection_name, query):
-        deleted_url = self.client[collection_name.value].delete_one(query)
+    async def delete_one(self, collection_name, query):
+        deleted_url = await self.db_name.collection_name.delete_one(query)
         return deleted_url.deleted_count
 
-    def delete_many(self, collection_name, query):
-        deleted_urls = self.client[collection_name.value].delete_many(query)
+    async def delete_many(self, collection_name, query):
+        deleted_urls = await self.db_name.collection_name.delete_many(query)
         return deleted_urls.deleted_count

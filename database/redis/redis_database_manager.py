@@ -8,27 +8,29 @@ class RedisDatabaseManager:
     def __init__(self, host, port, password, db_name):
         self.host = host
         self.port = port
-        # self.username = username
         self.password = password
         self.db_name = db_name
 
-    def connect(self, host, port, password, db_name):
-        self.client = Redis(self.host, self.port, self.password, self.db_name)
+    def connect(self):
+        self.client = Redis(
+            host=self.host, port=self.port, password=self.password, db=self.db_name
+        )
 
     def disconnect(self):
         self.client.close()
 
-    def set_value(self, key, value, expire):
-        self.client.set(key, value, expire)
+    async def set_value(self, key, value, expire):
+        await self.client.set(key, value, expire)
         return True
 
-    def get_value(self, key):
-        self.client.get(key)
+    async def get_value(self, key):
+        await self.client.get(key)
         return True
 
-    def delete_value(self, key):
-        self.client.delete(key)
+    async def delete_value(self, key):
+        await self.client.delete(key)
         return True
 
-    def exists(self, key):
-        return bool(self.client.exists(key))
+    async def exists(self, key):
+        does_exist = await bool(self.client.exists(key))
+        return does_exist

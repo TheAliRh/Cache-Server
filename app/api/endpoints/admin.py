@@ -4,7 +4,7 @@ from datetime import datetime
 from bson import ObjectId
 
 from models.url_shorten import URLDoc, ShortenRequest
-from utils.url_hash_generator import generate_url_hash_id
+from app.utils.url_hash_generator import generate_url_hash_id
 from database.mongo.collection_manager import CollectionManager
 from database.connection import Connection
 
@@ -23,7 +23,7 @@ class AdminEndpoints(APIRouter):
         self.delete("/delete_shortened_url")(self.route_delete_shortened_url)
         self.get("/get_shortened_url")(self.route_get_shortened_url)
 
-    def route_create_shortened_url(self, original_url):
+    async def route_create_shortened_url(self, original_url):
 
         mongodb_id = ObjectId()
 
@@ -37,41 +37,41 @@ class AdminEndpoints(APIRouter):
             expires_in_seconds=None,
             clicks=0,
         )
-        response = mongodb_manager.insert_one(
-            collection_name=CollectionManager.shortened_urls, document=document
+        response = await mongodb_manager.insert_doc(
+            collection_name=CollectionManager.shortened_urls, document=document.dict()
         )
 
         return response
 
-    def route_update_shortened_url(self, code, original_url):
+    async def route_update_shortened_url(self, code, id, original_url):
         document = URLDoc(
-            _id=None,
+            _id=id,
             code=code,
             original_url=original_url,
             created_at=datetime.utcnow(),
             expires_in_seconds=None,
             clicks=0,
         )
-        response = mongodb_manager.update_one(
+        response = await mongodb_manager.update_one(
             collection_name=CollectionManager.shortened_urls,
-            query={f"original_url:{original_url}"},
-            document=document,
+            query={"original_url": original_url},
+            document={"$set": dict(document)},
         )
         return response
 
-    def route_delete_shortened_url(self, original_url, code):
-        query = {
-            f"original_url:{original_url}",
-            f"code:{code}",
-        }
-        response = mongodb_manager.delete_one(
+    async def route_delete_shortened_url(self, code):
+        query = {"code": code}
+        response = await mongodb_manager.delete_one(
             collection_name=CollectionManager.shortened_urls, query=query
         )
         return response
 
-    def route_get_shortened_url(self, code):
-        query = {f"code:{code}"}
-        response = mongodb_manager.find_one(
+    async def route_get_shortened_url(self, inserted_id):
+        query = {"_id": ObjectId(inserted_id)}
+        response = await mongodb_manager.find_one(
             collection_name=CollectionManager.shortened_urls, query=query
         )
-        return response
+
+        original_url = response["original_url"]
+
+        return original_url

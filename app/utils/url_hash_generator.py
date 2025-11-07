@@ -1,7 +1,7 @@
 import hashlib
 import string
 
-from config import settings
+from app.config import settings
 
 # Define Base62 alphabet
 BASE62_ALPHABET = string.digits + string.ascii_uppercase + string.ascii_lowercase

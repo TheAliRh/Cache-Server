@@ -4,7 +4,6 @@ import httpx
 
 from contextlib import asynccontextmanager
 
-from app.api.endpoints.endpoints import router
 from app.api.endpoints.admin import AdminEndpoints
 from app.api.endpoints.url import URLEndpoints
 from app.config import settings
@@ -41,7 +40,6 @@ app = FastAPI(
 admin_router = AdminEndpoints()
 url_shortner_router = URLEndpoints()
 
-app.include_router(router=router)
 app.include_router(router=admin_router)
 app.include_router(router=url_shortner_router)
 

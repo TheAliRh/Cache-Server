@@ -9,3 +9,6 @@ __pycache__/
 
 # Project Documents
 docs/
+
+# Under development
+app/api/endpoints/endpoints.py

@@ -1,6 +1,8 @@
 """This module is used for shortener urls models"""
 
 from pydantic import BaseModel, AnyHttpUrl, Field
+
+from bson import ObjectId
 from typing import Optional
 from datetime import datetime
 
@@ -27,9 +29,9 @@ class URLDoc(BaseModel):
     This class is used for keeping status of shortened urls.
     """
 
-    _id: Optional[str]
+    _id: str
     code: str
     original_url: str
     created_at: datetime
     expires_in_seconds: Optional[datetime]
-    clicks: int = 0
+    clicks: int

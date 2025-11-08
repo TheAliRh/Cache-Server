@@ -25,28 +25,40 @@ class AdminEndpoints(APIRouter):
 
     async def route_create_shortened_url(self, original_url):
 
-        mongodb_id = ObjectId()
-
-        code = generate_url_hash_id(mongodb_id)
-
-        document = URLDoc(
-            _id=mongodb_id,
-            code=code,
-            original_url=original_url,
-            created_at=datetime.utcnow(),
-            expires_in_seconds=None,
-            clicks=0,
-        )
-        response = await mongodb_manager.insert_doc(
-            collection_name=CollectionManager.shortened_urls, document=document.dict()
+        value = await mongodb_manager.find_one(
+            collection_name=CollectionManager.shortened_urls,
+            query={"original_url": original_url},
         )
 
-        return response
+        if value == None:
 
-    async def route_update_shortened_url(self, code, id, original_url):
+            mongodb_id = ObjectId()
+
+            code = generate_url_hash_id(mongodb_id)
+
+            document = URLDoc(
+                _id=mongodb_id,
+                code=code,
+                original_url=original_url,
+                created_at=datetime.utcnow(),
+                expires_in_seconds=None,
+                clicks=0,
+            )
+            response = await mongodb_manager.insert_doc(
+                collection_name=CollectionManager.shortened_urls,
+                document=document.dict(),
+            )
+
+            return code
+
+        else:
+
+            return value["code"]
+
+    async def route_update_shortened_url(self, code, new_code, original_url):
         document = URLDoc(
             _id=id,
-            code=code,
+            code=new_code,
             original_url=original_url,
             created_at=datetime.utcnow(),
             expires_in_seconds=None,
@@ -54,7 +66,7 @@ class AdminEndpoints(APIRouter):
         )
         response = await mongodb_manager.update_one(
             collection_name=CollectionManager.shortened_urls,
-            query={"original_url": original_url},
+            query={"code": code},
             document={"$set": dict(document)},
         )
         return response
@@ -66,12 +78,19 @@ class AdminEndpoints(APIRouter):
         )
         return response
 
-    async def route_get_shortened_url(self, inserted_id):
-        query = {"_id": ObjectId(inserted_id)}
-        response = await mongodb_manager.find_one(
+    async def route_get_shortened_url(self, code):
+        query = {"code": code}
+        url_status = await mongodb_manager.find_one(
             collection_name=CollectionManager.shortened_urls, query=query
         )
 
-        original_url = response["original_url"]
+        response = URLDoc(
+            _id=url_status["_id"],
+            code=url_status["code"],
+            original_url=url_status["original_url"],
+            created_at=url_status["created_at"],
+            expires_in_seconds=url_status["expires_in_seconds"],
+            clicks=url_status["clicks"],
+        )
 
-        return original_url
+        return response

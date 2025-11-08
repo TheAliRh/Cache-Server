@@ -20,16 +20,16 @@ class RedisDatabaseManager:
         self.client.close()
 
     async def set_value(self, key, value, expire):
-        await self.client.set(key, value, expire)
-        return True
+        response = await self.client.set(key, value, expire)
+        return response
 
     async def get_value(self, key):
-        await self.client.get(key)
-        return True
+        value = await self.client.get(key)
+        return value
 
     async def delete_value(self, key):
-        await self.client.delete(key)
-        return True
+        response = await self.client.delete(key)
+        return response
 
     async def exists(self, key):
         does_exist = await bool(self.client.exists(key))

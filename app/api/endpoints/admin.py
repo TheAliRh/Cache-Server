@@ -159,3 +159,51 @@ class AdminEndpoints(APIRouter):
         )
 
         raise HTTPException(status_code=status.HTTP_202_ACCEPTED, detail=str(response))
+
+    async def route_get_user_profile(self, user_id: ObjectId):
+
+        if user_id == None:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The user id cannot be empty!",
+            )
+
+        query = {"_id": user_id}
+
+        user_doc = await mongodb_manager.find_one(
+            collection_name=CollectionManager.users, query=query
+        )
+
+        user_data_pack += dict(user_doc)
+
+        raise HTTPException(status_code=status.HTTP_200_OK, detail=user_data_pack)
+
+    async def route_get_all_user_urls(self, user_id: ObjectId):
+
+        if user_id == None:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The user id cannot be empty!",
+            )
+
+        id_query = {"_id": user_id}
+
+        user_doc = await mongodb_manager.find_one(
+            collection_name=CollectionManager.users, query=id_query
+        )
+
+        user_urls = []
+
+        for url_code in user_doc["linked_urls"]:
+
+            url_code_query = {"code": url_code}
+
+            url_doc = await mongodb_manager.find_one(
+                collection_name=CollectionManager.users, query=url_code_query
+            )
+
+        user_urls.append(url_doc)
+
+        raise HTTPException(status_code=status.HTTP_200_OK, detail=user_urls)

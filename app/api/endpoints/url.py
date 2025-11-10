@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.responses import RedirectResponse
 from redis import Redis
 
 import httpx
 import json
 
-from app.api.endpoints.admin import AdminEndpoints
+from models.url_shorten import URLDoc
 from database.mongo.collection_manager import CollectionManager
+from database.connection import Connection
 
 
 class URLEndpoints(APIRouter):
@@ -16,35 +17,40 @@ class URLEndpoints(APIRouter):
         self.__include_routes()
 
     def __include_routes(self):
-        self.get("/{url_code}")(self.route_redirect_shortened_url)
+        self.get("/{code}")(self.route_redirect_shortened_url)
 
-    async def route_redirect_shortened_url(self, url_code, request: Request):
+    async def route_redirect_shortened_url(self, code, request: Request):
 
-        response = await AdminEndpoints.route_get_shortened_url(
-            CollectionManager.shortened_urls, url_code
-        )
+        mongodb_manager = Connection.mongo_db_manager
 
         self.redis_client = request.app.state.redis_client
 
         self.http_client: httpx.AsyncClient = request.app.state.http_client
 
-        value = await self.redis_client.get_value(url_code)
+        await mongodb_manager.update_one(
+            collection_name=CollectionManager.shortened_urls,
+            query={"code": code},
+            document={"$inc": {"clicks": 1}},
+        )
+
+        value = await self.redis_client.get_value(code)
+
         if value is None:
 
-            redirect_page = RedirectResponse(url=response)
-
-            data_str = json.dumps(
-                {
-                    "url": redirect_page.url,
-                    "status_code": redirect_page.status_code,
-                    "headers": dict(redirect_page.headers),
-                }
+            query = {"code": code}
+            url_status = await mongodb_manager.find_one(
+                collection_name=CollectionManager.shortened_urls, query=query
             )
 
-            await self.redis_client.set_value(url_code, data_str, expire=60)
+            data_str = json.dumps({"original_url": url_status["original_url"]})
 
-            return redirect_page
+            await self.redis_client.set_value(code, data_str, expire=60)
+
+            return RedirectResponse(
+                url=url_status["original_url"],
+                status_code=status.HTTP_308_PERMANENT_REDIRECT,
+            )
 
         else:
 
-            return RedirectResponse(url=value)
+            return RedirectResponse(url=value["original_url"])

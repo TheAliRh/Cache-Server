@@ -56,3 +56,9 @@ class CodeInput(BaseModel):
                 "Code can only contain letters and numbers (A–Z, a–z, 0–9)"
             )
         return v
+
+
+class URLSummery(BaseModel):
+
+    code: str
+    clicks: int

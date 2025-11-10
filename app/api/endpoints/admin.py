@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from datetime import datetime
 from bson import ObjectId
 
-from models.url_shorten import URLDoc, ShortenRequest
+from models.url import URLDoc, URLInput, CodeInput
 from app.utils.url_hash_generator import generate_url_hash_id
 from database.mongo.collection_manager import CollectionManager
 from database.connection import Connection
@@ -23,11 +23,18 @@ class AdminEndpoints(APIRouter):
         self.delete("/delete_shortened_url")(self.route_delete_shortened_url)
         self.get("/get_shortened_url")(self.route_get_shortened_url)
 
-    async def route_create_shortened_url(self, original_url):
+    async def route_create_shortened_url(self, original_url: URLInput):
+
+        if original_url == None:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The URL cannot be empty!",
+            )
 
         checker = await mongodb_manager.find_one(
             collection_name=CollectionManager.shortened_urls,
-            query={"original_url": original_url},
+            query={"original_url": str(original_url.url)},
         )
 
         if checker == None:
@@ -39,7 +46,7 @@ class AdminEndpoints(APIRouter):
             document = URLDoc(
                 _id=mongodb_id,
                 code=code,
-                original_url=original_url,
+                original_url=str(original_url.url),
                 created_at=datetime.utcnow(),
                 expires_in_seconds=None,
                 clicks=0,
@@ -61,7 +68,16 @@ class AdminEndpoints(APIRouter):
                 detail=f"The URL '{checker["code"]}' got created successfully!",
             )
 
-    async def route_update_shortened_url(self, code, new_code, original_url):
+    async def route_update_shortened_url(
+        self, code: CodeInput, new_code: CodeInput, original_url: URLInput
+    ):
+
+        if code or new_code or original_url == None:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The field cannot be empty!",
+            )
 
         checker = await mongodb_manager.find_one(
             collection_name=CollectionManager.shortened_urls, query={"code": new_code}
@@ -72,7 +88,7 @@ class AdminEndpoints(APIRouter):
             document = URLDoc(
                 _id=id,
                 code=new_code,
-                original_url=original_url,
+                original_url=str(original_url.url),
                 created_at=datetime.utcnow(),
                 expires_in_seconds=None,
                 clicks=0,
@@ -93,7 +109,15 @@ class AdminEndpoints(APIRouter):
                 detail=f"The URL code {new_code} is already in use!",
             )
 
-    async def route_delete_shortened_url(self, code):
+    async def route_delete_shortened_url(self, code: CodeInput):
+
+        if code == None:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The code cannot be empty!",
+            )
+
         query = {"code": code}
         response = await mongodb_manager.delete_one(
             collection_name=CollectionManager.shortened_urls, query=query
@@ -111,7 +135,15 @@ class AdminEndpoints(APIRouter):
                 detail=f"The URL {code} deleted successfully!",
             )
 
-    async def route_get_shortened_url(self, code):
+    async def route_get_shortened_url(self, code: CodeInput):
+
+        if code == None:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The code cannot be empty!",
+            )
+
         query = {"code": code}
         url_status = await mongodb_manager.find_one(
             collection_name=CollectionManager.shortened_urls, query=query

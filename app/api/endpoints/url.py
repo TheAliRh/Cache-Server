@@ -5,7 +5,7 @@ from redis import Redis
 import httpx
 import json
 
-from models.url_shorten import URLDoc
+from models.url import URLInput
 from database.mongo.collection_manager import CollectionManager
 from database.connection import Connection
 
@@ -19,7 +19,14 @@ class URLEndpoints(APIRouter):
     def __include_routes(self):
         self.get("/{code}")(self.route_redirect_shortened_url)
 
-    async def route_redirect_shortened_url(self, code, request: Request):
+    async def route_redirect_shortened_url(self, code: URLInput, request: Request):
+
+        if code == None:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The code cannot be empty!",
+            )
 
         mongodb_manager = Connection.mongo_db_manager
 

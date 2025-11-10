@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from datetime import datetime
 from bson import ObjectId
 
-from models.url import URLDoc, URLInput, CodeInput
+from models.url import URLDoc, URLInput, CodeInput, URLSummery
 from app.utils.url_hash_generator import generate_url_hash_id
 from database.mongo.collection_manager import CollectionManager
 from database.connection import Connection
@@ -204,6 +204,11 @@ class AdminEndpoints(APIRouter):
                 collection_name=CollectionManager.users, query=url_code_query
             )
 
-        user_urls.append(url_doc)
+        url_summery = URLSummery(
+            code=url_doc["code"],
+            clicks=url_doc["clicks"],
+        )
+
+        user_urls.append(url_summery)
 
         raise HTTPException(status_code=status.HTTP_200_OK, detail=user_urls)

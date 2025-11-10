@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 
 from datetime import datetime
 from bson import ObjectId
@@ -25,12 +25,12 @@ class AdminEndpoints(APIRouter):
 
     async def route_create_shortened_url(self, original_url):
 
-        value = await mongodb_manager.find_one(
+        checker = await mongodb_manager.find_one(
             collection_name=CollectionManager.shortened_urls,
             query={"original_url": original_url},
         )
 
-        if value == None:
+        if checker == None:
 
             mongodb_id = ObjectId()
 
@@ -44,39 +44,72 @@ class AdminEndpoints(APIRouter):
                 expires_in_seconds=None,
                 clicks=0,
             )
-            response = await mongodb_manager.insert_doc(
+            await mongodb_manager.insert_doc(
                 collection_name=CollectionManager.shortened_urls,
                 document=document.dict(),
             )
 
-            return code
+            raise HTTPException(
+                status_code=status.HTTP_201_CREATED,
+                detail=f"The URL '{code}' got created successfully!",
+            )
 
         else:
 
-            return value["code"]
+            raise HTTPException(
+                status_code=status.HTTP_208_ALREADY_REPORTED,
+                detail=f"The URL '{checker["code"]}' got created successfully!",
+            )
 
     async def route_update_shortened_url(self, code, new_code, original_url):
-        document = URLDoc(
-            _id=id,
-            code=new_code,
-            original_url=original_url,
-            created_at=datetime.utcnow(),
-            expires_in_seconds=None,
-            clicks=0,
+
+        checker = await mongodb_manager.find_one(
+            collection_name=CollectionManager.shortened_urls, query={"code": new_code}
         )
-        response = await mongodb_manager.update_one(
-            collection_name=CollectionManager.shortened_urls,
-            query={"code": code},
-            document={"$set": dict(document)},
-        )
-        return response
+
+        if checker == None:
+
+            document = URLDoc(
+                _id=id,
+                code=new_code,
+                original_url=original_url,
+                created_at=datetime.utcnow(),
+                expires_in_seconds=None,
+                clicks=0,
+            )
+            await mongodb_manager.update_one(
+                collection_name=CollectionManager.shortened_urls,
+                query={"code": code},
+                document={"$set": dict(document)},
+            )
+            raise HTTPException(
+                status_code=status.HTTP_202_ACCEPTED, detail="The URL got updated"
+            )
+
+        else:
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"The URL code {new_code} is already in use!",
+            )
 
     async def route_delete_shortened_url(self, code):
         query = {"code": code}
         response = await mongodb_manager.delete_one(
             collection_name=CollectionManager.shortened_urls, query=query
         )
-        return response
+        if response != 1:
+
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="There is a conflict in the process!",
+            )
+
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_204_NO_CONTENT,
+                detail=f"The URL {code} deleted successfully!",
+            )
 
     async def route_get_shortened_url(self, code):
         query = {"code": code}
@@ -93,4 +126,4 @@ class AdminEndpoints(APIRouter):
             clicks=url_status["clicks"],
         )
 
-        return response
+        raise HTTPException(status_code=status.HTTP_202_ACCEPTED, detail=str(response))

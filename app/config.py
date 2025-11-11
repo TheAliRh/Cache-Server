@@ -30,5 +30,10 @@ class Settings:
     # Hash configuration
     HASH_SECRET_KEY = os.getenv("HASH_SECRET_KEY")
 
+    # JWT configuration
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    ALGORITHM = os.getenv("ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+
 
 settings = Settings()

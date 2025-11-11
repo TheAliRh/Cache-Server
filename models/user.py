@@ -8,5 +8,5 @@ class UserDoc(BaseModel):
 
     _id: ObjectId
     email: EmailStr
-    password: str
+    hashed_password: str
     linked_urls: list[CodeInput]

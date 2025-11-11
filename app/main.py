@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from app.api.endpoints.admin import AdminEndpoints
 from app.api.endpoints.url import URLEndpoints
+from app.api.endpoints.authentication import AuthEndpoints
 from app.config import settings
 from database.connection import Connection
 
@@ -38,10 +39,12 @@ app = FastAPI(
 
 # Mounting the router
 admin_router = AdminEndpoints()
+auth_router = AuthEndpoints()
 url_shortner_router = URLEndpoints()
 
 app.include_router(router=admin_router)
 app.include_router(router=url_shortner_router)
+app.include_router(router=auth_router)
 
 
 # Health check endpoint

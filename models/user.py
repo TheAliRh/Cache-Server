@@ -10,3 +10,8 @@ class UserDoc(BaseModel):
     email: EmailStr
     hashed_password: str
     linked_urls: list[CodeInput]
+
+
+class GetUserRequest(BaseModel):
+
+    _id: ObjectId

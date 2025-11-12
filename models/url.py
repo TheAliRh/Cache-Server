@@ -62,3 +62,26 @@ class URLSummery(BaseModel):
 
     code: str
     clicks: int
+
+
+class CreateURLRequest(BaseModel):
+
+    original_url: HttpUrl
+    code: CodeInput = None
+    expire_time: datetime = None
+
+
+class UpdateURLRequest(BaseModel):
+
+    current_code: CodeInput
+    new_code: CodeInput
+
+
+class DeleteURLRequest(BaseModel):
+
+    code: CodeInput
+
+
+class GetURLRequest(BaseModel):
+
+    code: CodeInput

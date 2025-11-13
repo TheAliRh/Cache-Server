@@ -4,8 +4,8 @@ import os
 class Settings:
 
     # FastAPI configuration
-    PROJECT_NAME = "URL Shorten-er Server"
-    PROJECT_VERSION = "V 0.3"
+    PROJECT_NAME = "URL Shortener Server"
+    PROJECT_VERSION = "V 0.5"
 
     # Redis configuration
     R_HOST = "localhost"
@@ -31,9 +31,9 @@ class Settings:
     HASH_SECRET_KEY = os.getenv("HASH_SECRET_KEY")
 
     # JWT configuration
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-    ALGORITHM = os.getenv("ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "JWTsecretKEY")
+    ALGORITHM = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60)
 
 
 settings = Settings()

@@ -5,7 +5,7 @@ from redis import Redis
 import httpx
 import json
 
-from models.url import URLInput
+from models.url import GetURLRequest
 from database.mongo.collection_manager import CollectionManager
 from database.connection import Connection
 
@@ -19,8 +19,19 @@ class URLEndpoints(APIRouter):
     def __include_routes(self):
         self.get("/{code}")(self.route_redirect_shortened_url)
 
-    async def route_redirect_shortened_url(self, code: URLInput, request: Request):
+    async def route_redirect_shortened_url(self, body: GetURLRequest, request: Request):
+        """
+        Description:
+        - Redirects user to intended url.
 
+        Args:
+        - body: Includes 'code'.
+            * code: Is used for finding the intended url and redirecting to it.
+        """
+
+        code = body.code
+
+        # No empty input
         if code == None:
 
             raise HTTPException(
@@ -34,16 +45,19 @@ class URLEndpoints(APIRouter):
 
         self.http_client: httpx.AsyncClient = request.app.state.http_client
 
+        # Update shortened url's stats
         await mongodb_manager.update_one(
             collection_name=CollectionManager.shortened_urls,
             query={"code": code},
             document={"$inc": {"clicks": 1}},
         )
 
+        # Store in cache
         value = await self.redis_client.get_value(code)
 
         if value is None:
 
+            # Find the original_url
             query = {"code": code}
             url_status = await mongodb_manager.find_one(
                 collection_name=CollectionManager.shortened_urls, query=query
@@ -53,6 +67,7 @@ class URLEndpoints(APIRouter):
 
             await self.redis_client.set_value(code, data_str, expire=60)
 
+            # Redirect to original_url
             return RedirectResponse(
                 url=url_status["original_url"],
                 status_code=status.HTTP_308_PERMANENT_REDIRECT,
@@ -60,4 +75,5 @@ class URLEndpoints(APIRouter):
 
         else:
 
+            # Redirect to original_url
             return RedirectResponse(url=value["original_url"])
